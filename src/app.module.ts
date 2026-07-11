@@ -6,6 +6,8 @@ import jwtConfig from '@config/jwt.config';
 import { envValidationSchema } from '@config/validation.schema';
 import { PrismaModule } from '@database/prisma.module';
 import { HealthModule } from '@modules/health/health.module';
+import { UsersModule } from '@modules/users/users.module';
+import { AuthModule } from '@modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { HealthModule } from '@modules/health/health.module';
     }),
     PrismaModule,
     HealthModule,
+    UsersModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
