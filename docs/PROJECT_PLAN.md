@@ -1,67 +1,55 @@
-# Booking Platform API
+# Final Project Plan & Roadmap
 
-## Progress
+This document represents the finalized engineering roadmap for the EN2H Booking Platform backend. All milestones have been successfully achieved.
 
-- [x] Project Initialization
-- [x] Environment Configuration
-- [x] Docker
-- [x] Prisma
-- [x] PostgreSQL
-- [ ] Authentication
-- [ ] Service Module
-- [ ] Booking Module
-- [x] Validation
-- [ ] Exception Handling
-- [x] Swagger
-- [x] Testing
-- [ ] Documentation
-- [ ] Final Review
+## Milestone 1: Project Scaffolding & Infrastructure
+- [x] Initialize strictly-typed NestJS application.
+- [x] Configure TypeScript compiler paths & aliases.
+- [x] Integrate PostgreSQL and Prisma ORM.
+- [x] Configure global `ValidationPipe` for strict DTO sanitization.
+- [x] Configure global `HttpExceptionFilter` and `ApiResponseInterceptor`.
+- [x] Set up Swagger auto-documentation pipeline.
 
----
+## Milestone 2: Core Authentication
+- [x] Generate `AuthModule` and `UsersModule`.
+- [x] Create Prisma `User` model.
+- [x] Implement secure registration with `bcrypt` password hashing.
+- [x] Implement standard JWT login with Passport strategies.
 
-## Milestone 1
+## Milestone 3: Services Domain
+- [x] Generate `ServicesModule`.
+- [x] Create Prisma `Service` model.
+- [x] Implement REST CRUD endpoints (`POST`, `GET`, `PATCH`, `DELETE`).
+- [x] Add cursor/offset pagination, text search, and active-status filtering.
+- [x] Secure modification endpoints with JWT Guards.
 
-- [x] Initialize NestJS
-- [x] Create project structure
-- [x] Setup documentation
-- [x] Configure environment
-- [x] Install dependencies
+## Milestone 4: Bookings Domain & Business Logic
+- [x] Generate `BookingsModule`.
+- [x] Create Prisma `Booking` model and `BookingStatus` state machine.
+- [x] Enforce composite unique constraints to prevent double bookings.
+- [x] Prevent past-date bookings in the service layer.
+- [x] Implement status transitions (`PENDING` -> `CONFIRMED` -> `COMPLETED`/`CANCELLED`).
+- [x] Wire up robust relational queries.
 
-## Milestone 2: Authentication
+## Milestone 5: Enterprise Authentication Upgrades
+- [x] Upgrade JWT configuration to support Token Rotation.
+- [x] Add nullable `refreshToken` field to `User` model.
+- [x] Implement `POST /auth/refresh` endpoint and `JwtRefreshGuard`.
+- [x] Ensure refresh tokens are bcrypt-hashed at rest (no plaintext storage).
+- [x] Implement `POST /auth/logout` to securely revoke token hashes.
 
-- [ ] Register endpoint
-- [ ] Login endpoint
-- [ ] Hash password
-- [ ] JWT strategy
-- [ ] JWT guard
-- [ ] Auth DTOs and validation
+## Milestone 6: Quality Assurance & Testing
+- [x] Configure Jest mapping for path aliases.
+- [x] Write isolated unit tests for `AuthService` mocking `PrismaService`.
+- [x] Write isolated unit tests for `ServicesService` and `BookingsService`.
+- [x] Assert edge-cases, validation rejections, and state machine transitions.
+- [x] Ensure statement coverage reaches >95% across domain boundaries.
 
-## Milestone 3: Services
-
-- [ ] Create service module
-- [ ] List services
-- [ ] Get service by id
-- [ ] Create service
-- [ ] Update service
-- [ ] Delete service
-- [ ] Service status handling
-
-## Milestone 4: Bookings
-
-- [ ] Create booking
-- [ ] List bookings
-- [ ] Get booking by id
-- [ ] Update booking status
-- [ ] Prevent duplicate bookings
-- [ ] Enforce booking business rules
-
-## Milestone 5: Production Readiness
-
-- [x] Global validation pipe
-- [ ] Global exception filter
-- [x] Swagger documentation
-- [ ] Pagination support
-- [ ] Filtering and search
-- [ ] Docker setup
-- [ ] Final README
-- [ ] Test pass and cleanup
+## Milestone 7: Production Operations
+- [x] Containerize the application (`Dockerfile`).
+- [x] Orchestrate PostgreSQL and API networking (`docker-compose.yml`).
+- [x] Build automated CI Pipeline via GitHub Actions (`ci.yml`).
+- [x] Add pagination memory ceilings (`@Max(100)` limit).
+- [x] Optimize Database Indexes (`@@index`).
+- [x] Generate complete automated Postman Collection v2.1.
+- [x] Finalize comprehensive architectural documentation (`ARCHITECTURE.md`, `DECISIONS.md`, `BUSINESS_RULES.md`).
