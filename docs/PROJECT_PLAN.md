@@ -3,17 +3,17 @@
 ## Progress
 
 - [x] Project Initialization
-- [ ] Environment Configuration
-- [ ] Docker
-- [ ] Prisma
-- [ ] PostgreSQL
+- [x] Environment Configuration
+- [x] Docker
+- [x] Prisma
+- [x] PostgreSQL
 - [ ] Authentication
 - [ ] Service Module
 - [ ] Booking Module
-- [ ] Validation
+- [x] Validation
 - [ ] Exception Handling
-- [ ] Swagger
-- [ ] Testing
+- [x] Swagger
+- [x] Testing
 - [ ] Documentation
 - [ ] Final Review
 
@@ -24,8 +24,8 @@
 - [x] Initialize NestJS
 - [x] Create project structure
 - [x] Setup documentation
-- [ ] Configure environment
-- [ ] Install dependencies
+- [x] Configure environment
+- [x] Install dependencies
 
 ## Milestone 2: Authentication
 
@@ -57,9 +57,9 @@
 
 ## Milestone 5: Production Readiness
 
-- [ ] Global validation pipe
+- [x] Global validation pipe
 - [ ] Global exception filter
-- [ ] Swagger documentation
+- [x] Swagger documentation
 - [ ] Pagination support
 - [ ] Filtering and search
 - [ ] Docker setup
