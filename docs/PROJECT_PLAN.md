@@ -10,10 +10,10 @@
 - [ ] Authentication
 - [ ] Service Module
 - [ ] Booking Module
-- [ ] Validation
+- [x] Validation
 - [ ] Exception Handling
-- [ ] Swagger
-- [ ] Testing
+- [x] Swagger
+- [x] Testing
 - [ ] Documentation
 - [ ] Final Review
 
@@ -57,9 +57,9 @@
 
 ## Milestone 5: Production Readiness
 
-- [ ] Global validation pipe
+- [x] Global validation pipe
 - [ ] Global exception filter
-- [ ] Swagger documentation
+- [x] Swagger documentation
 - [ ] Pagination support
 - [ ] Filtering and search
 - [ ] Docker setup
