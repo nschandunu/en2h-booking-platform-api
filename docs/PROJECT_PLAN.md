@@ -3,10 +3,10 @@
 ## Progress
 
 - [x] Project Initialization
-- [ ] Environment Configuration
-- [ ] Docker
-- [ ] Prisma
-- [ ] PostgreSQL
+- [x] Environment Configuration
+- [x] Docker
+- [x] Prisma
+- [x] PostgreSQL
 - [ ] Authentication
 - [ ] Service Module
 - [ ] Booking Module
@@ -24,8 +24,8 @@
 - [x] Initialize NestJS
 - [x] Create project structure
 - [x] Setup documentation
-- [ ] Configure environment
-- [ ] Install dependencies
+- [x] Configure environment
+- [x] Install dependencies
 
 ## Milestone 2: Authentication
 
