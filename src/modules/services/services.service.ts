@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '@database/prisma.service';
 import { Prisma, Service } from '@prisma/client';
 import { CreateServiceDto } from './dto/create-service.dto';
@@ -13,11 +17,11 @@ export class ServicesService {
     const existing = await this.prisma.service.findUnique({
       where: { title: createServiceDto.title },
     });
-    
+
     if (existing) {
       throw new ConflictException('A service with this title already exists.');
     }
-    
+
     return this.prisma.service.create({
       data: createServiceDto,
     });
@@ -67,7 +71,10 @@ export class ServicesService {
     return service;
   }
 
-  async update(id: string, updateServiceDto: UpdateServiceDto): Promise<Service> {
+  async update(
+    id: string,
+    updateServiceDto: UpdateServiceDto,
+  ): Promise<Service> {
     // Check if the service exists
     await this.findOne(id);
 
@@ -77,7 +84,9 @@ export class ServicesService {
         where: { title: updateServiceDto.title },
       });
       if (existing && existing.id !== id) {
-        throw new ConflictException('A service with this title already exists.');
+        throw new ConflictException(
+          'A service with this title already exists.',
+        );
       }
     }
 

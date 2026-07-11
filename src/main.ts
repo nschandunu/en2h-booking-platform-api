@@ -45,7 +45,9 @@ async function bootstrap() {
   // Swagger Documentation Setup
   const config = new DocumentBuilder()
     .setTitle('EN2H Booking Platform API')
-    .setDescription('The core REST API for the EN2H Booking Platform application, featuring automated scheduling and service management.')
+    .setDescription(
+      'The core REST API for the EN2H Booking Platform application, featuring automated scheduling and service management.',
+    )
     .setVersion('1.0')
     .addBearerAuth()
     .build();
@@ -54,6 +56,8 @@ async function bootstrap() {
 
   await app.listen(port);
   logger.log(`Application is running on: http://localhost:${port}/api/v1`);
-  logger.log(`Swagger documentation available at: http://localhost:${port}/docs`);
+  logger.log(
+    `Swagger documentation available at: http://localhost:${port}/docs`,
+  );
 }
 bootstrap();
