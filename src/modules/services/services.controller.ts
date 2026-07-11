@@ -1,9 +1,25 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ServicesService } from './services.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { QueryServiceDto } from './dto/query-service.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('Services')
@@ -25,7 +41,10 @@ export class ServicesController {
 
   @Get()
   @ApiOperation({ summary: 'Retrieve a paginated list of services' })
-  @ApiResponse({ status: 200, description: 'Returns paginated list of services.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns paginated list of services.',
+  })
   findAll(@Query() queryServiceDto: QueryServiceDto) {
     return this.servicesService.findAll(queryServiceDto);
   }

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '@database/prisma.service';
 import { Prisma, Booking, BookingStatus } from '@prisma/client';
 import { CreateBookingDto } from './dto/create-booking.dto';
@@ -15,7 +20,7 @@ export class BookingsService {
     const bookingDateObj = new Date(createBookingDto.bookingDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     if (bookingDateObj < today) {
       throw new BadRequestException('Booking date cannot be in the past.');
     }
@@ -26,7 +31,9 @@ export class BookingsService {
     });
 
     if (!service) {
-      throw new NotFoundException(`Service with ID ${createBookingDto.serviceId} not found.`);
+      throw new NotFoundException(
+        `Service with ID ${createBookingDto.serviceId} not found.`,
+      );
     }
 
     // 3. Check if service is active
@@ -42,7 +49,9 @@ export class BookingsService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-          throw new ConflictException('This time slot is already booked for this service.');
+          throw new ConflictException(
+            'This time slot is already booked for this service.',
+          );
         }
       }
       throw error;
@@ -91,19 +100,26 @@ export class BookingsService {
       where: { id },
       include: { service: true },
     });
-    
+
     if (!booking) {
       throw new NotFoundException(`Booking with ID ${id} not found.`);
     }
-    
+
     return booking;
   }
 
-  async updateStatus(id: string, updateDto: UpdateBookingStatusDto): Promise<Booking> {
+  async updateStatus(
+    id: string,
+    updateDto: UpdateBookingStatusDto,
+  ): Promise<Booking> {
     const booking = await this.findOne(id);
 
-    if (!BookingStatusValidator.canTransition(booking.status, updateDto.status)) {
-      throw new BadRequestException(`Cannot transition booking from ${booking.status} to ${updateDto.status}`);
+    if (
+      !BookingStatusValidator.canTransition(booking.status, updateDto.status)
+    ) {
+      throw new BadRequestException(
+        `Cannot transition booking from ${booking.status} to ${updateDto.status}`,
+      );
     }
 
     return this.prisma.booking.update({
@@ -115,8 +131,15 @@ export class BookingsService {
   async cancel(id: string): Promise<Booking> {
     const booking = await this.findOne(id);
 
-    if (!BookingStatusValidator.canTransition(booking.status, BookingStatus.CANCELLED)) {
-      throw new BadRequestException(`Cannot cancel booking with status ${booking.status}`);
+    if (
+      !BookingStatusValidator.canTransition(
+        booking.status,
+        BookingStatus.CANCELLED,
+      )
+    ) {
+      throw new BadRequestException(
+        `Cannot cancel booking with status ${booking.status}`,
+      );
     }
 
     return this.prisma.booking.update({

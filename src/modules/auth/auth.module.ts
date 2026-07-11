@@ -17,7 +17,8 @@ import { UsersModule } from '../users/users.module';
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('jwt.secret') || 'fallback_secret',
         signOptions: {
-          expiresIn: (configService.get<string>('jwt.expiresIn') || '1d') as any,
+          expiresIn: (configService.get<string>('jwt.expiresIn') ||
+            '1d') as any,
         },
       }),
     }),
