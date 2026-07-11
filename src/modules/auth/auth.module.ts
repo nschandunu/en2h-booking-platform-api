@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { UsersModule } from '../users/users.module';
 
 @Module({
@@ -18,13 +19,13 @@ import { UsersModule } from '../users/users.module';
         secret: configService.get<string>('jwt.secret') || 'fallback_secret',
         signOptions: {
           expiresIn: (configService.get<string>('jwt.expiresIn') ||
-            '1d') as any,
+            '15m') as any,
         },
       }),
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, JwtRefreshStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}
