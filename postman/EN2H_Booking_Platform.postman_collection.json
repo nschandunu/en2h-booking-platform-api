@@ -1,0 +1,595 @@
+{
+  "info": {
+    "name": "EN2H Booking Platform API",
+    "description": "Complete Postman Collection for the EN2H Booking Platform backend assessment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Checks if the API is up and running."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"johndoe@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.success && response.data) {",
+                  "    pm.environment.set(\"accessToken\", response.data.accessToken);",
+                  "    pm.environment.set(\"refreshToken\", response.data.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"johndoe@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.success && response.data) {",
+                  "    pm.environment.set(\"accessToken\", response.data.accessToken);",
+                  "    pm.environment.set(\"refreshToken\", response.data.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{refreshToken}}", "type": "string" }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{accessToken}}", "type": "string" }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Services",
+      "item": [
+        {
+          "name": "Create Service",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{accessToken}}", "type": "string" }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Premium Car Wash\",\n  \"description\": \"Full exterior and interior cleaning.\",\n  \"duration\": 60,\n  \"price\": 49.99\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["services"]
+            }
+          }
+        },
+        {
+          "name": "Get All Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/services?page=1&limit=10&search=Wash&active=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["services"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "search", "value": "Wash" },
+                { "key": "active", "value": "true" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Service By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/services/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", ":id"],
+              "variable": [
+                { "key": "id", "value": "{{serviceId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Service",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{accessToken}}", "type": "string" }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 59.99,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/services/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", ":id"],
+              "variable": [
+                { "key": "id", "value": "{{serviceId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Service",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{accessToken}}", "type": "string" }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/services/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", ":id"],
+              "variable": [
+                { "key": "id", "value": "{{serviceId}}" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"customerName\": \"Jane Smith\",\n  \"customerEmail\": \"jane@example.com\",\n  \"customerPhone\": \"+1234567890\",\n  \"bookingDate\": \"2026-12-31\",\n  \"bookingTime\": \"14:30\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings"]
+            }
+          }
+        },
+        {
+          "name": "Get All Bookings",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{accessToken}}", "type": "string" }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bookings?page=1&limit=10&status=PENDING&customerName=Jane",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "status", "value": "PENDING" },
+                { "key": "customerName", "value": "Jane" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Booking By ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{accessToken}}", "type": "string" }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bookings/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", ":id"],
+              "variable": [
+                { "key": "id", "value": "{{bookingId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Booking Status",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{accessToken}}", "type": "string" }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CONFIRMED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings/:id/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", ":id", "status"],
+              "variable": [
+                { "key": "id", "value": "{{bookingId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel Booking",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{accessToken}}", "type": "string" }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bookings/:id/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", ":id", "cancel"],
+              "variable": [
+                { "key": "id", "value": "{{bookingId}}" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Demo Flow",
+      "description": "Run this folder using Collection Runner to test the entire application top-to-bottom automatically.",
+      "item": [
+        {
+          "name": "1. Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "2. Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Demo User\",\n  \"email\": \"demo.admin@example.com\",\n  \"password\": \"SuperSecret123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "3. Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.success && response.data) {",
+                  "    pm.environment.set(\"accessToken\", response.data.accessToken);",
+                  "    pm.environment.set(\"refreshToken\", response.data.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo.admin@example.com\",\n  \"password\": \"SuperSecret123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "4. Create Service",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.success && response.data && response.data.id) {",
+                  "    pm.environment.set(\"serviceId\", response.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{accessToken}}", "type": "string" }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Auto Detailing Demo\",\n  \"description\": \"Complete exterior and interior package.\",\n  \"duration\": 120,\n  \"price\": 149.99\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["services"]
+            }
+          }
+        },
+        {
+          "name": "5. Get Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["services"]
+            }
+          }
+        },
+        {
+          "name": "6. Create Booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.success && response.data && response.data.id) {",
+                  "    pm.environment.set(\"bookingId\", response.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"customerName\": \"Alice Tester\",\n  \"customerEmail\": \"alice@tester.com\",\n  \"customerPhone\": \"+1987654321\",\n  \"bookingDate\": \"2027-01-01\",\n  \"bookingTime\": \"09:00\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings"]
+            }
+          }
+        },
+        {
+          "name": "7. Get Bookings",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{accessToken}}", "type": "string" }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings"]
+            }
+          }
+        },
+        {
+          "name": "8. Update Booking Status",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{accessToken}}", "type": "string" }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CONFIRMED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings/:id/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", ":id", "status"],
+              "variable": [
+                { "key": "id", "value": "{{bookingId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "9. Cancel Booking",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{accessToken}}", "type": "string" }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bookings/:id/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", ":id", "cancel"],
+              "variable": [
+                { "key": "id", "value": "{{bookingId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "10. Logout",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{accessToken}}", "type": "string" }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

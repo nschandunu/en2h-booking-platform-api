@@ -16,4 +16,14 @@ A production-ready Booking Platform REST API built using NestJS, Prisma, and Pos
 
 ## Project Status
 
-🚧 Project initialization in progress.
+✅ Ready for Review
+
+## Postman Collection
+
+A ready-to-use Postman collection is included in the `postman/` directory.
+
+Features:
+- Automatic JWT token management
+- Pre-configured environment variables
+- Demo workflow covering the complete API
+- Pagination and filtering examples
