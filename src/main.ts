@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { ValidationPipe, VersioningType, Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { ApiResponseInterceptor } from '@common/interceptors/api-response.interceptor';
@@ -8,6 +8,7 @@ import { HttpExceptionFilter } from '@common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap');
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('app.port') || 3000;
@@ -43,8 +44,8 @@ async function bootstrap() {
 
   // Swagger Documentation Setup
   const config = new DocumentBuilder()
-    .setTitle('Booking Platform API')
-    .setDescription('The core REST API for the Booking Platform application.')
+    .setTitle('EN2H Booking Platform API')
+    .setDescription('The core REST API for the EN2H Booking Platform application, featuring automated scheduling and service management.')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
@@ -52,7 +53,7 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, document);
 
   await app.listen(port);
-  console.log(`[Bootstrap] Application is running on: http://localhost:${port}/api/v1`);
-  console.log(`[Bootstrap] Swagger documentation available at: http://localhost:${port}/docs`);
+  logger.log(`Application is running on: http://localhost:${port}/api/v1`);
+  logger.log(`Swagger documentation available at: http://localhost:${port}/docs`);
 }
 bootstrap();
