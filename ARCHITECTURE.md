@@ -1,137 +1,157 @@
 # Architecture Overview
 
-This document outlines the high-level architecture, module boundaries, and design principles of the EN2H Booking Platform API. The system is built using **NestJS**, adhering to strict Domain-Driven Design (DDD) principles and feature-based modularity, backed by **PostgreSQL** and **Prisma ORM**.
+The EN2H Booking Platform is a robust, production-ready backend system designed to handle service reservations. Built on **NestJS**, the application enforces a strict Domain-Driven, feature-module architecture. It utilizes **PostgreSQL** as the primary datastore, interfaced exclusively through the **Prisma ORM**.
+
+The system is designed for high cohesion and low coupling. It prioritizes type safety, explicit dependency injection, and centralized error handling, ensuring that business logic is isolated and testable.
 
 ---
 
-## High-Level Design
+# High Level Architecture
 
-The application follows a classic layered architecture pattern optimized for NestJS. External HTTP requests are caught by global interceptors/filters, routed to domain-specific controllers, delegated to business-logic services, and finally persisted via the Prisma data access layer.
+The application is deployed via Docker and relies on a classic multi-tiered architecture.
 
 ```mermaid
 flowchart TD
-    Client[Client (Frontend / Mobile)]
+    Client[Client / Consumer]
+    Swagger[Swagger UI / API Docs]
     
-    subgraph NestJS Application
-        Interceptor[Global Interceptor & Filter]
-        Controller[Controller Layer]
-        Service[Service Layer (Business Logic)]
-        Prisma[Prisma Data Access Layer]
+    subgraph Containerized Application Network
+        subgraph NestJS Node.js Container
+            Config[ConfigModule & env vars]
+            Guards[JWT Auth Guards]
+            Controllers[Controllers / Routing]
+            Services[Business Logic Services]
+            PrismaService[PrismaService Abstraction]
+            
+            Controllers --> Services
+            Guards --> Controllers
+            Config --> Services
+            Config --> Guards
+        end
+        
+        PrismaORM[Prisma ORM Binary]
+        Database[(PostgreSQL Database)]
     end
-    
-    Database[(PostgreSQL Database)]
 
-    Client -->|HTTP Request| Interceptor
-    Interceptor --> Controller
-    Controller --> Service
-    Service --> Prisma
-    Prisma --> Database
-    Database --> Prisma
-    Prisma --> Service
-    Service --> Controller
-    Controller --> Interceptor
-    Interceptor -->|HTTP Response| Client
+    Client -->|HTTP Requests| Guards
+    Swagger -.->|Auto-generated specs| Controllers
+    Services --> PrismaService
+    PrismaService --> PrismaORM
+    PrismaORM --> Database
 ```
 
 ---
 
-## Folder Structure
+# Project Structure
 
-The repository is structured to prioritize scalability, readability, and clear separation of concerns.
+The repository is structured to separate configuration, domain boundaries, and shared infrastructure.
 
-```text
-src/
-├── common/        # Application-wide utilities (Guards, Interceptors, Filters)
-├── config/        # Environment-aware configuration files & Joi validation schemas
-├── database/      # Prisma Service encapsulation and DB connection management
-├── modules/       # Feature-based domain modules (The core of the app)
-│   ├── auth/      # Authentication & Token Management
-│   ├── users/     # User identity and profile management
-│   ├── services/  # Booking services catalog management
-│   ├── bookings/  # Core booking engine and state machines
-│   └── health/    # Kubernetes/Docker liveness probes
-├── main.ts        # Application bootstrap & global bindings
-└── app.module.ts  # Root module aggregating all feature modules
+| Directory | Responsibility |
+|-----------|----------------|
+| `src/modules/` | Feature-based domains (Auth, Users, Services, Bookings). The core of the application. |
+| `src/common/` | Global utilities applied across all modules (Interceptors, Filters, Decorators). |
+| `src/config/` | Environment variables, Joi validation schemas, and configuration loaders. |
+| `src/database/` | Prisma Client initialization, abstraction, and lifecycle management. |
+| `prisma/` | Database schema (`schema.prisma`) and raw SQL migration tracking (`migrations/`). |
+| `docs/` | ADRs, Business Rules, API Specs, and Development Logs. |
+| `.github/workflows/`| Automated CI pipelines (compilation, testing). |
+| `postman/` | Exported Postman collections and environments with automated test scripts. |
+
+---
+
+# Feature Modules
+
+The application is decomposed vertically. Modules expose specific interfaces and do not cross-pollinate database access.
+
+- **Authentication (`AuthModule`)**: Manages the issuance and validation of JSON Web Tokens. Integrates Passport strategies and handles token rotation flows.
+- **Users (`UsersModule`)**: Manages identity records. Provides encapsulated methods for the Auth module to query users by email and persist hashed refresh tokens safely.
+- **Services (`ServicesModule`)**: Manages the catalog of bookable offerings. Handles full CRUD and complex pagination/filtering queries.
+- **Bookings (`BookingsModule`)**: The core domain engine. Handles reservations, enforces status transition rules, and relies on strict database constraints to prevent double-bookings.
+- **Health (`HealthModule`)**: Exposes lightweight liveness probes (`/api/v1/health`) for container orchestrators.
+
+---
+
+# Shared Infrastructure
+
+The shared layers ensure that cross-cutting concerns are handled uniformly.
+
+- **ConfigModule**: Validates `process.env` against a strict Joi schema at boot. Fails fast if required variables (e.g., `DATABASE_URL`) are missing.
+- **PrismaModule**: Exports the `PrismaService`. Guarantees a single, shared connection pool to PostgreSQL across the entire application runtime.
+- **Exception Filters**: The `HttpExceptionFilter` catches all thrown exceptions (e.g., `NotFoundException`) and normalizes the payload to `{ success: false, statusCode: 404, error: "..." }`.
+- **Interceptors**: The `ApiResponseInterceptor` intercepts successful controller responses and wraps them in a standardized `{ success: true, message: string, data: T }` envelope.
+- **ValidationPipe**: Global pipe utilizing `class-validator`. Strips unexpected fields (`whitelist: true`) and rejects malformed payloads before they reach controllers.
+- **Swagger**: Bound globally. Auto-generates the OpenAPI specification directly from controller routing and DTO decorators.
+- **Dependency Injection**: Dependencies are wired strictly via constructor injection provided by the NestJS IoC container. No global singletons are manually instantiated.
+
+---
+
+# Request Lifecycle
+
+Every HTTP request follows a strict path through the NestJS pipeline.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Guard as JWT Guard
+    participant Pipe as ValidationPipe
+    participant Controller
+    participant Service
+    participant Prisma
+    participant DB as PostgreSQL
+    participant Interceptor as Response Interceptor
+
+    Client->>Guard: POST /bookings (Bearer Token)
+    Guard-->>Client: 401 Unauthorized (if invalid)
+    Guard->>Pipe: Proceed
+    Pipe-->>Client: 400 Bad Request (if schema fails)
+    Pipe->>Controller: Sanitized DTO
+    Controller->>Service: Delegate execution
+    Service->>Prisma: Prisma Client Method
+    Prisma->>DB: Executed SQL
+    DB-->>Prisma: Result
+    Prisma-->>Service: Typed Object
+    Service-->>Controller: Domain Response
+    Controller->>Interceptor: Raw output
+    Interceptor->>Client: Wrapped JSON { success, data }
 ```
 
 ---
 
-## Module Responsibilities
+# Design Principles
 
-The application is decomposed into tightly cohesive, loosely coupled feature modules:
-
-### Authentication (`src/modules/auth`)
-- **Responsibility**: Issues and validates JSON Web Tokens (JWT).
-- **Features**: Registration, Login, Refresh Token Rotation, and Logout.
-- **Security**: Utilizes bcrypt to securely hash passwords and refresh tokens at rest. Integrates tightly with `@nestjs/passport`.
-
-### Users (`src/modules/users`)
-- **Responsibility**: Manages the `User` entity lifecycle.
-- **Features**: Creating identities, retrieving user profiles by ID/Email, and securely persisting hashed refresh tokens during auth flows.
-
-### Services (`src/modules/services`)
-- **Responsibility**: Manages the catalog of bookable services (e.g., Car Wash, Consulting).
-- **Features**: Full CRUD operations. Enforces strict uniqueness on service titles. Implements cursor/offset pagination and text-based searching.
-
-### Bookings (`src/modules/bookings`)
-- **Responsibility**: The core domain engine managing customer reservations.
-- **Features**: Idempotent booking creation (preventing double-bookings via composite unique keys `[serviceId, bookingDate, bookingTime]`). Enforces strict state machine transitions (e.g., `PENDING -> CONFIRMED`, blocking `COMPLETED -> CANCELLED`).
-
-### Health (`src/modules/health`)
-- **Responsibility**: Provides lightweight endpoints for container orchestrators (Docker/Kubernetes) to verify that the HTTP server and database connections are alive.
+- **Feature-based architecture**: Grouping logic by domain (Bookings, Auth) rather than technical type (Controllers, Services) maximizes cohesion and allows features to be easily extracted into microservices if needed.
+- **Single Responsibility Principle (SRP)**: Controllers exclusively handle HTTP mapping; Services exclusively handle business logic; Prisma handles persistence.
+- **Dependency Injection**: Services define what they need in their constructor. This allows for trivial mocking during unit tests (e.g., passing a `mockPrismaService`).
+- **Configuration Separation**: Hardcoded values do not exist in the source code. Environments control behavior.
 
 ---
 
-## Shared Components
+# Security Architecture
 
-### Config (`src/config`)
-Centralizes environment variables into strongly-typed objects. Uses `Joi` to perform strict schema validation at startup (e.g., crashing immediately if `JWT_SECRET` or `DATABASE_URL` is missing), adhering to the Fail-Fast principle.
-
-### Common (`src/common`)
-Houses domain-agnostic tools:
-- **`ApiResponseInterceptor`**: Wraps all successful outgoing payloads in a standardized `{ success: true, message: string, data: T }` envelope.
-- **`HttpExceptionFilter`**: Catches all thrown exceptions and standardizes the JSON error payload sent to the client.
-
-### Database (`src/database`)
-Encapsulates the generated Prisma Client inside an injectable `PrismaService`. This ensures the application maintains a single, optimized connection pool to PostgreSQL and correctly manages connection lifecycles during application shutdown (`onModuleDestroy`).
+- **JWT (Stateless Access)**: API routes are protected by short-lived (15-minute) JWTs, preventing the need for a database lookup on every request.
+- **Refresh Tokens (Stateful Session)**: Handled strictly. Refresh tokens are bcrypt-hashed before saving to the database. If a database is breached, active sessions cannot be stolen.
+- **bcrypt**: Passwords are mathematically hashed with salting.
+- **Validation**: Strict DTO mapping prevents prototype pollution and mass-assignment attacks by rejecting non-whitelisted payload properties.
 
 ---
 
-## Dependency Injection
+# Deployment Architecture
 
-The application strictly utilizes NestJS's native IoC (Inversion of Control) container for Dependency Injection.
-- **No Global Singletons**: Dependencies are never manually instantiated via `new Service()`.
-- **Constructor Injection**: Every controller and service defines its dependencies in its constructor (e.g., `constructor(private readonly prisma: PrismaService) {}`), allowing the NestJS runtime to wire the graph.
-- **Testability**: Because of strict DI, we easily substitute real services with mocked variants during our Jest unit test runs (e.g., providing a `mockPrismaService` instead of a real database connection).
+The application is built for containerized deployment.
 
----
-
-## Request Lifecycle
-
-When a client makes a request to the API, it follows a strict, predictable path:
-
-1. **Middleware**: Executes underlying Express middleware (e.g., CORS, Body Parsing).
-2. **Guards (`jwt-auth.guard.ts`)**: If the endpoint is protected, Passport validates the JWT. If invalid, it immediately rejects with HTTP 401.
-3. **Pipes (ValidationPipe)**: The incoming JSON payload is transformed into a typed DTO class. `class-validator` decorators (e.g., `@IsString()`, `@Max(100)`) enforce schema rules. If validation fails, it rejects with HTTP 400.
-4. **Controller**: The routed controller method receives the sanitized, validated DTO and immediately delegates it to the Service layer.
-5. **Service**: Core business logic executes (e.g., checking if a booking date is in the past).
-6. **Prisma**: The service reads/writes to PostgreSQL via `PrismaService`.
-7. **Interceptor (`api-response.interceptor.ts`)**: The raw object returned by the controller is intercepted and wrapped in the standardized API response envelope.
-8. **Exception Filter**: If any error was thrown during steps 4-7 (e.g., `NotFoundException`), it bypasses the interceptor and is caught by the `HttpExceptionFilter` for clean formatting.
+- **Docker**: The Node.js application is packaged inside a lean Alpine Linux container.
+- **Docker Compose**: Orchestrates the local cluster. Spins up both the NestJS API (`port 3000`) and the PostgreSQL database (`port 5432`) simultaneously on an isolated bridge network.
+- **GitHub Actions**: Provides CI verification. The `.github/workflows/ci.yml` triggers on `push` and `pull_request`, running dependency installation, Prisma generation, code compilation, and Jest unit tests with coverage reports.
 
 ---
 
-## Design Principles
+# Future Scalability
 
-### Feature-Based Architecture
-The codebase is sliced vertically by feature rather than horizontally by type. For instance, `auth.controller`, `auth.service`, and `auth.module` are grouped together in `modules/auth`. This increases cohesiveness and makes it infinitely easier to extract features into microservices in the future.
+The feature-based modularity guarantees that new business domains can be introduced safely. 
 
-### Separation of Concerns
-- **Controllers**: Exclusively handle HTTP routing, DTO extraction, and Swagger documentation.
-- **Services**: Exclusively handle business logic and database orchestration.
+For example, to introduce a `Payments` feature:
+1. Create a `PaymentsModule`.
+2. Encapsulate all logic within that directory.
+3. Import it into `AppModule`.
 
-### Single Responsibility Principle (SRP)
-Every class has exactly one reason to change. The `AuthService` manages tokens; the `UsersService` manages database records. The `AuthService` delegates to `UsersService` rather than speaking to Prisma directly.
-
-### Configuration Management
-Hardcoded configuration strings are banned. All variables (ports, secrets, database URLs) are loaded dynamically from the environment, validated on boot, and injected into services via the `@nestjs/config` module.
+Because the existing `Bookings` and `Services` modules do not rely on a monolithic god-service, `Payments` can be integrated cleanly through explicit dependency injection without risking regressions in the core flow.
