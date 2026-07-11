@@ -42,7 +42,7 @@ The system utilizes a multi-tiered architecture passing through strict validatio
 flowchart TD
     Client[Client Request]
     Guard[JWT Auth Guard]
-    Pipe[Validation Pipe (class-validator)]
+    Pipe["Validation Pipe (class-validator)"]
     Controller[NestJS Controller]
     Service[Business Logic Service]
     Prisma[Prisma ORM]
