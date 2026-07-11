@@ -1,12 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BookingsService } from './bookings.service';
 import { PrismaService } from '@database/prisma.service';
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { BookingStatus, Prisma } from '@prisma/client';
 
 describe('BookingsService', () => {
   let service: BookingsService;
-  let prismaService: PrismaService;
 
   const mockPrismaService = {
     service: {
@@ -30,7 +33,6 @@ describe('BookingsService', () => {
     }).compile();
 
     service = module.get<BookingsService>(BookingsService);
-    prismaService = module.get<PrismaService>(PrismaService);
     jest.clearAllMocks();
   });
 
@@ -48,7 +50,9 @@ describe('BookingsService', () => {
 
       // Act & Assert
       await expect(service.create(dto)).rejects.toThrow(BadRequestException);
-      await expect(service.create(dto)).rejects.toThrow('Booking date cannot be in the past.');
+      await expect(service.create(dto)).rejects.toThrow(
+        'Booking date cannot be in the past.',
+      );
     });
 
     it('should throw NotFoundException if service does not exist', async () => {
@@ -83,11 +87,16 @@ describe('BookingsService', () => {
         bookingTime: '10:00',
       };
 
-      mockPrismaService.service.findUnique.mockResolvedValue({ id: '1', isActive: false });
+      mockPrismaService.service.findUnique.mockResolvedValue({
+        id: '1',
+        isActive: false,
+      });
 
       // Act & Assert
       await expect(service.create(dto)).rejects.toThrow(BadRequestException);
-      await expect(service.create(dto)).rejects.toThrow('Cannot book an inactive service.');
+      await expect(service.create(dto)).rejects.toThrow(
+        'Cannot book an inactive service.',
+      );
     });
 
     it('should throw ConflictException on duplicate booking (same service, date, time)', async () => {
@@ -103,7 +112,10 @@ describe('BookingsService', () => {
         bookingTime: '10:00',
       };
 
-      mockPrismaService.service.findUnique.mockResolvedValue({ id: '1', isActive: true });
+      mockPrismaService.service.findUnique.mockResolvedValue({
+        id: '1',
+        isActive: true,
+      });
       mockPrismaService.booking.create.mockRejectedValue(
         new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
           code: 'P2002',
@@ -128,14 +140,22 @@ describe('BookingsService', () => {
         bookingTime: '10:00',
       };
 
-      mockPrismaService.service.findUnique.mockResolvedValue({ id: '1', isActive: true });
-      mockPrismaService.booking.create.mockResolvedValue({ id: 'booking-id', ...dto });
+      mockPrismaService.service.findUnique.mockResolvedValue({
+        id: '1',
+        isActive: true,
+      });
+      mockPrismaService.booking.create.mockResolvedValue({
+        id: 'booking-id',
+        ...dto,
+      });
 
       // Act
       const result = await service.create(dto);
 
       // Assert
-      expect(mockPrismaService.booking.create).toHaveBeenCalledWith({ data: dto });
+      expect(mockPrismaService.booking.create).toHaveBeenCalledWith({
+        data: dto,
+      });
       expect(result.id).toEqual('booking-id');
     });
   });
@@ -143,7 +163,12 @@ describe('BookingsService', () => {
   describe('findAll', () => {
     it('should return paginated and filtered bookings', async () => {
       // Arrange
-      const query = { page: 1, limit: 10, status: BookingStatus.PENDING, customerName: 'Test' };
+      const query = {
+        page: 1,
+        limit: 10,
+        status: BookingStatus.PENDING,
+        customerName: 'Test',
+      };
       const expectedWhere = {
         status: BookingStatus.PENDING,
         customerName: { contains: 'Test', mode: 'insensitive' },
@@ -196,11 +221,19 @@ describe('BookingsService', () => {
   describe('updateStatus', () => {
     it('should update status on valid transition (PENDING -> CONFIRMED)', async () => {
       // Arrange
-      mockPrismaService.booking.findUnique.mockResolvedValue({ id: '1', status: BookingStatus.PENDING });
-      mockPrismaService.booking.update.mockResolvedValue({ id: '1', status: BookingStatus.CONFIRMED });
+      mockPrismaService.booking.findUnique.mockResolvedValue({
+        id: '1',
+        status: BookingStatus.PENDING,
+      });
+      mockPrismaService.booking.update.mockResolvedValue({
+        id: '1',
+        status: BookingStatus.CONFIRMED,
+      });
 
       // Act
-      const result = await service.updateStatus('1', { status: BookingStatus.CONFIRMED });
+      const result = await service.updateStatus('1', {
+        status: BookingStatus.CONFIRMED,
+      });
 
       // Assert
       expect(mockPrismaService.booking.update).toHaveBeenCalledWith({
@@ -212,18 +245,29 @@ describe('BookingsService', () => {
 
     it('should throw BadRequestException on invalid transition (COMPLETED -> PENDING)', async () => {
       // Arrange
-      mockPrismaService.booking.findUnique.mockResolvedValue({ id: '1', status: BookingStatus.COMPLETED });
+      mockPrismaService.booking.findUnique.mockResolvedValue({
+        id: '1',
+        status: BookingStatus.COMPLETED,
+      });
 
       // Act & Assert
-      await expect(service.updateStatus('1', { status: BookingStatus.PENDING })).rejects.toThrow(BadRequestException);
+      await expect(
+        service.updateStatus('1', { status: BookingStatus.PENDING }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
   describe('cancel', () => {
     it('should cancel a valid booking (PENDING -> CANCELLED)', async () => {
       // Arrange
-      mockPrismaService.booking.findUnique.mockResolvedValue({ id: '1', status: BookingStatus.PENDING });
-      mockPrismaService.booking.update.mockResolvedValue({ id: '1', status: BookingStatus.CANCELLED });
+      mockPrismaService.booking.findUnique.mockResolvedValue({
+        id: '1',
+        status: BookingStatus.PENDING,
+      });
+      mockPrismaService.booking.update.mockResolvedValue({
+        id: '1',
+        status: BookingStatus.CANCELLED,
+      });
 
       // Act
       const result = await service.cancel('1');
@@ -238,7 +282,10 @@ describe('BookingsService', () => {
 
     it('should throw BadRequestException when cancelling a COMPLETED booking', async () => {
       // Arrange
-      mockPrismaService.booking.findUnique.mockResolvedValue({ id: '1', status: BookingStatus.COMPLETED });
+      mockPrismaService.booking.findUnique.mockResolvedValue({
+        id: '1',
+        status: BookingStatus.COMPLETED,
+      });
 
       // Act & Assert
       await expect(service.cancel('1')).rejects.toThrow(BadRequestException);

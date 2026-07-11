@@ -12,8 +12,6 @@ jest.mock('bcrypt');
 
 describe('AuthService', () => {
   let authService: AuthService;
-  let prismaService: PrismaService;
-  let jwtService: JwtService;
 
   const mockPrismaService = {
     user: {
@@ -48,8 +46,6 @@ describe('AuthService', () => {
     }).compile();
 
     authService = module.get<AuthService>(AuthService);
-    prismaService = module.get<PrismaService>(PrismaService);
-    jwtService = module.get<JwtService>(JwtService);
 
     jest.clearAllMocks();
   });
@@ -57,9 +53,13 @@ describe('AuthService', () => {
   describe('register', () => {
     it('should successfully register a user (Register success)', async () => {
       // Arrange
-      const dto = { name: 'Test', email: 'test@test.com', password: 'password123' };
+      const dto = {
+        name: 'Test',
+        email: 'test@test.com',
+        password: 'password123',
+      };
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
-      
+
       const savedUser = {
         id: 'user-id',
         name: dto.name,
@@ -81,7 +81,7 @@ describe('AuthService', () => {
           name: dto.name,
           email: dto.email,
           password: 'hashedPassword',
-        }
+        },
       });
       expect(result.message).toEqual('User registered successfully');
       expect(result.data).not.toHaveProperty('password');
@@ -90,14 +90,20 @@ describe('AuthService', () => {
 
     it('should throw error if email is duplicate (Duplicate email)', async () => {
       // Arrange
-      const dto = { name: 'Test', email: 'duplicate@test.com', password: 'password123' };
+      const dto = {
+        name: 'Test',
+        email: 'duplicate@test.com',
+        password: 'password123',
+      };
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
-      
+
       // Simulate Prisma Unique Constraint Violation
-      mockPrismaService.user.create.mockRejectedValue(new Prisma.PrismaClientKnownRequestError(
-        'Unique constraint failed',
-        { code: 'P2002', clientVersion: '7.8.0' }
-      ));
+      mockPrismaService.user.create.mockRejectedValue(
+        new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+          code: 'P2002',
+          clientVersion: '7.8.0',
+        }),
+      );
 
       // Act & Assert
       await expect(authService.register(dto)).rejects.toThrow();
@@ -113,12 +119,17 @@ describe('AuthService', () => {
         email: dto.email,
         password: 'hashedPassword',
       };
-      
+
       mockPrismaService.user.findUnique.mockResolvedValue(user);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       (bcrypt.hash as jest.Mock).mockResolvedValue('newRefreshHash');
-      mockJwtService.signAsync.mockResolvedValueOnce('access-token').mockResolvedValueOnce('refresh-token');
-      mockPrismaService.user.update.mockResolvedValue({ ...user, refreshToken: 'newRefreshHash' });
+      mockJwtService.signAsync
+        .mockResolvedValueOnce('access-token')
+        .mockResolvedValueOnce('refresh-token');
+      mockPrismaService.user.update.mockResolvedValue({
+        ...user,
+        refreshToken: 'newRefreshHash',
+      });
 
       // Act
       const result = await authService.login(dto);
@@ -139,7 +150,9 @@ describe('AuthService', () => {
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       // Act & Assert
-      await expect(authService.login(dto)).rejects.toThrow(UnauthorizedException);
+      await expect(authService.login(dto)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 
@@ -174,14 +187,22 @@ describe('AuthService', () => {
       mockPrismaService.user.findUnique.mockResolvedValue(user);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       (bcrypt.hash as jest.Mock).mockResolvedValue('new-hashed-refresh-token');
-      mockJwtService.signAsync.mockResolvedValueOnce('new-access').mockResolvedValueOnce('new-refresh');
+      mockJwtService.signAsync
+        .mockResolvedValueOnce('new-access')
+        .mockResolvedValueOnce('new-refresh');
       mockPrismaService.user.update.mockResolvedValue({});
 
       // Act
-      const result = await authService.refreshTokens(userId, incomingRefreshToken);
+      const result = await authService.refreshTokens(
+        userId,
+        incomingRefreshToken,
+      );
 
       // Assert
-      expect(bcrypt.compare).toHaveBeenCalledWith(incomingRefreshToken, 'hashed-refresh-token');
+      expect(bcrypt.compare).toHaveBeenCalledWith(
+        incomingRefreshToken,
+        'hashed-refresh-token',
+      );
       expect(result.data.accessToken).toEqual('new-access');
       expect(result.data.refreshToken).toEqual('new-refresh');
       expect(mockPrismaService.user.update).toHaveBeenCalledWith({
@@ -199,7 +220,9 @@ describe('AuthService', () => {
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       // Act & Assert
-      await expect(authService.refreshTokens('user-id', 'wrong-token')).rejects.toThrow(ForbiddenException);
+      await expect(
+        authService.refreshTokens('user-id', 'wrong-token'),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('should throw ForbiddenException if user has no refresh token in DB', async () => {
@@ -210,7 +233,9 @@ describe('AuthService', () => {
       });
 
       // Act & Assert
-      await expect(authService.refreshTokens('user-id', 'token')).rejects.toThrow(ForbiddenException);
+      await expect(
+        authService.refreshTokens('user-id', 'token'),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 });

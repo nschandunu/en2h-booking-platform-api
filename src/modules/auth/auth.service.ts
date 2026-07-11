@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
@@ -25,7 +29,7 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    const { password, refreshToken, ...result } = user;
+    const { password: _p, refreshToken: _r, ...result } = user;
     return {
       message: 'User registered successfully',
       data: result,
@@ -38,7 +42,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      user.password,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -46,7 +53,7 @@ export class AuthService {
     const tokens = await this.getTokens(user.id, user.email);
     await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
 
-    const { password, refreshToken, ...userResult } = user;
+    const { password: _p, refreshToken: _r, ...userResult } = user;
 
     return {
       message: 'Login successful',
@@ -68,13 +75,16 @@ export class AuthService {
     // 1. We know the token is structurally valid (JwtRefreshStrategy handles that).
     // Now we must verify the user's DB state.
     const user = await this.usersService.findById(userId);
-    
+
     if (!user || !user.refreshToken) {
       throw new ForbiddenException('Access denied');
     }
 
     // 2. Compare hashes
-    const isRefreshTokenValid = await bcrypt.compare(refreshToken, user.refreshToken);
+    const isRefreshTokenValid = await bcrypt.compare(
+      refreshToken,
+      user.refreshToken,
+    );
     if (!isRefreshTokenValid) {
       throw new ForbiddenException('Access denied');
     }
@@ -96,7 +106,9 @@ export class AuthService {
       this.jwtService.signAsync(payload), // Uses default secret & expiresIn from JwtModule
       this.jwtService.signAsync(payload, {
         secret: this.configService.get<string>('jwt.refreshSecret'),
-        expiresIn: this.configService.get<string>('jwt.refreshExpiresIn') as any,
+        expiresIn: this.configService.get<string>(
+          'jwt.refreshExpiresIn',
+        ) as any,
       }),
     ]);
 

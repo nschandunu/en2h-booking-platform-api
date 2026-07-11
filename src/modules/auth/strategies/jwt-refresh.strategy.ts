@@ -7,7 +7,10 @@ import { UsersService } from '../../users/users.service';
 import { Request } from 'express';
 
 @Injectable()
-export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
+export class JwtRefreshStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-refresh',
+) {
   constructor(
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
@@ -15,14 +18,16 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('jwt.refreshSecret') || 'fallback_refresh_secret',
+      secretOrKey:
+        configService.get<string>('jwt.refreshSecret') ||
+        'fallback_refresh_secret',
       passReqToCallback: true,
     });
   }
 
   async validate(req: Request, payload: JwtPayload) {
     const refreshToken = req.get('Authorization')?.replace('Bearer', '').trim();
-    
+
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token missing');
     }
