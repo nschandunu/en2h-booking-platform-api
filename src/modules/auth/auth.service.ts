@@ -67,9 +67,7 @@ export class AuthService {
   async refreshTokens(userId: string, refreshToken: string) {
     // 1. We know the token is structurally valid (JwtRefreshStrategy handles that).
     // Now we must verify the user's DB state.
-    const user = await this.usersService.findByEmail(
-      (await this.jwtService.decode(refreshToken))?.email as string
-    );
+    const user = await this.usersService.findById(userId);
     
     if (!user || !user.refreshToken) {
       throw new ForbiddenException('Access denied');
