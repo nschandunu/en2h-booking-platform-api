@@ -1,32 +1,31 @@
 # Booking Platform API
 
-## Project Status
+## Progress
 
-- [ ] Project Setup
-- [ ] Prisma Setup
+- [x] Project Initialization
+- [ ] Environment Configuration
+- [ ] Docker
+- [ ] Prisma
 - [ ] PostgreSQL
 - [ ] Authentication
-- [ ] JWT
 - [ ] Service Module
 - [ ] Booking Module
 - [ ] Validation
 - [ ] Exception Handling
 - [ ] Swagger
-- [ ] Docker
-- [ ] README
-- [ ] Final Testing
+- [ ] Testing
+- [ ] Documentation
+- [ ] Final Review
 
 ---
 
-## Milestone 1: Foundation
+## Milestone 1
 
-- [ ] Initialize NestJS
-- [ ] Configure ESLint
-- [ ] Configure Prettier
-- [ ] Setup Prisma
-- [ ] Create Database
-- [ ] Add environment validation
-- [ ] Create shared config module
+- [x] Initialize NestJS
+- [x] Create project structure
+- [x] Setup documentation
+- [ ] Configure environment
+- [ ] Install dependencies
 
 ## Milestone 2: Authentication
 

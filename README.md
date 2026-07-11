@@ -1,5 +1,19 @@
-# EN2H
+# Booking Platform API
 
-Project blueprint and implementation docs live in [docs/](docs).
+A production-ready Booking Platform REST API built using NestJS, Prisma, and PostgreSQL.
 
-Start with [PROJECT_PLAN.md](docs/PROJECT_PLAN.md), then work through architecture, database design, and the API spec before implementation.
+> Backend Engineering Internship Technical Assessment
+
+## Tech Stack
+
+- NestJS
+- TypeScript
+- PostgreSQL
+- Prisma ORM
+- JWT Authentication
+- Swagger
+- Docker
+
+## Project Status
+
+🚧 Project initialization in progress.
