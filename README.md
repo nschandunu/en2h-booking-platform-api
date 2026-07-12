@@ -15,8 +15,7 @@ The **EN2H Booking Platform API** is a robust, production-ready RESTful backend 
 
 Built on a strict Domain-Driven Design (DDD) feature-module architecture, this API provides a highly secure, heavily tested, and fully containerized engine. Customers can seamlessly browse active services and book time slots, while the system natively guarantees data integrity and physically prevents double-bookings directly at the database engine level.
 
-*(Note: Replace the placeholder image links below with actual screenshots of the running application before final submission).*
-
+ 
 ![Swagger UI Documentation](docs/assets/swagger-placeholder.png)
 
 ---
@@ -274,5 +273,5 @@ If deployed to a true high-traffic production environment, I would consider the 
 ---
 
 ## Author
-Developed by **Senuka**.
-- [GitHub Profile](https://github.com/senuka)
+Developed by **Senuka Chandunu**.
+- [GitHub Profile](https://github.com/nschandunu)
